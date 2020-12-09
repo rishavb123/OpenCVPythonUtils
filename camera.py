@@ -1,3 +1,4 @@
+"""A file for the camera class"""
 import cv2
 import time
 
@@ -11,6 +12,13 @@ class Camera:
         name='Frame', 
         should_log=True
     ):
+        """Creates a Camera object with the parameters as settings
+
+        Args:
+            src (int, optional): [description]. Defaults to 0.
+            name (str, optional): [description]. Defaults to 'Frame'.
+            should_log (bool, optional): [description]. Defaults to True.
+        """    
         self.name = name
         self.src = src
         self.should_log = should_log
@@ -20,6 +28,11 @@ class Camera:
             self.cap = cv2.VideoCapture(self.cap)
 
     def read(self):
+        """Reads an image from the internal capture object
+
+        Returns:
+            tuple: tuple containing a boolean of whether the image is valid and the actual image
+        """
         return self.cap.read()
 
     def stream(
@@ -30,6 +43,16 @@ class Camera:
         fps_sample_length=sample_length,
         finish=print
     ):
+        """Streams the camera output into a function or displays it
+
+        Args:
+            preprocess (function, optional): Function. Defaults to lambda frame:frame.
+            output ([type], optional): [description]. Defaults to None.
+            log ([type], optional): [description]. Defaults to lambdafps=0.
+            ret ([type], optional): [description]. Defaults to False:print(f"\rFPS: {fps}", end='').
+            fps_sample_length ([type], optional): [description]. Defaults to sample_length.
+            finish ([type], optional): [description]. Defaults to print.
+        """    
         currentFrame = 0
 
         last_time = time.time()
