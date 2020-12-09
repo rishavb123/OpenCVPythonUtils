@@ -36,7 +36,7 @@ class Camera:
         self,
         preprocess=lambda frame: frame,
         output=None,
-        log=lambda fps=0, ret=False: print(f"\rFPS: {fps}", end=""),
+        log=lambda fps=0, ret=True: print(f"\rFPS: {fps}", end=""),
         fps_sample_length=sample_length,
         finish=print,
     ):
