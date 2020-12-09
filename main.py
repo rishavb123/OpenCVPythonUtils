@@ -4,5 +4,5 @@ from camera import Camera
 parser = make_parser()
 args = parser.parse_args()
 
-camera = Camera()
+camera = Camera(src=args.video if args.video else args.cam)
 camera.stream()

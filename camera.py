@@ -7,8 +7,8 @@ class Camera:
 
     def __init__(
         self, 
-        name='Frame', 
         src=0,
+        name='Frame', 
         should_log=True
     ):
         self.name = name
