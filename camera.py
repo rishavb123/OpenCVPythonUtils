@@ -39,7 +39,7 @@ class Camera:
         frames_stored=1,
         log=lambda fps=0, ret=True: print(f"\rFPS: {fps}", end=""),
         fps_sample_length=sample_length,
-        finish=print
+        finish=print,
     ):
         """Streams the camera output into a function or displays it
 
@@ -71,7 +71,7 @@ class Camera:
                 continue
             frames.pop()
             output_frame = preprocess(frames)
-               
+
             if output(output_frame) == False:
                 break
 
