@@ -3,6 +3,7 @@ import cv2
 import time
 
 from constants import sample_length
+from args import make_parser
 
 
 class Camera:
@@ -19,6 +20,7 @@ class Camera:
         self.name = name
         self.src = src
         self.should_log = should_log
+        self.cur_frame = None
 
         self.cap = src
         if not isinstance(self.cap, cv2.VideoCapture):
@@ -30,7 +32,10 @@ class Camera:
         Returns:
             tuple: tuple containing a boolean of whether the image is valid and the actual image
         """
-        return self.cap.read()
+        ret, frame = self.cap.read()
+        if ret:
+            self.cur_frame = frame
+        return ret, frame
 
     def stream(
         self,
@@ -89,10 +94,17 @@ class Camera:
         self.cap.release()
         cv2.destroyAllWindows()
 
-    def _default_output_function(self, frames):
-        print(len(frames))
-        frame = frames[0]
+    def _default_output_function(self, frame):
         cv2.imshow(self.name, frame)
         k = cv2.waitKey(1) & 0xFF
         if k == ord("q") or k == 27:
             return False
+        return True
+
+
+def make_camera_with_args():
+    parser = make_parser()
+    args = parser.parse_args()
+
+    camera = Camera(src=args.video if args.video else args.cam, should_log=args.log)
+    return camera, args

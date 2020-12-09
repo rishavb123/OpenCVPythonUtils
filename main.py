@@ -1,9 +1,5 @@
 """Main script"""
-from args import make_parser
-from camera import Camera
+from camera import make_camera_with_args
 
-parser = make_parser()
-args = parser.parse_args()
-
-camera = Camera(src=args.video if args.video else args.cam)
-camera.stream(should_log=args.log)
+camera, args = make_camera_with_args()
+camera.stream()
