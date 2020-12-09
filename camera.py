@@ -34,26 +34,31 @@ class Camera:
 
     def stream(
         self,
-        preprocess=lambda frame: frame,
+        preprocess=lambda frames: frames[0],
         output=None,
+        frames_stored=1,
         log=lambda fps=0, ret=True: print(f"\rFPS: {fps}", end=""),
         fps_sample_length=sample_length,
-        finish=print,
+        finish=print
     ):
         """Streams the camera output into a function or displays it
 
         Args:
-            preprocess (function, optional): Function. Defaults to lambda frame:frame.
-            output ([type], optional): [description]. Defaults to None.
-            log ([type], optional): [description]. Defaults to lambdafps=0.
-            ret ([type], optional): [description]. Defaults to False:print(f"\rFPS: {fps}", end='').
-            fps_sample_length ([type], optional): [description]. Defaults to sample_length.
-            finish ([type], optional): [description]. Defaults to print.
+            preprocess (function, optional): Function to pass the frames through before streaming it. Defaults to lambda frames:frame[0].
+            output (function, optional): The function to output the preprocessed frame. Should receive list of frames and then return False to end the stream. Defaults to None.
+            frames_stored (int, optional): The number of frames to pass into the preprocess function. Defaults to 1
+            log (function, optional): The log function to pass the fps and ret values into. Defaults to lambda fps=0:print(f"\rFPS: {fps}", end='').
+            fps_sample_length (int, optional): The sample length for the fps (if sample length is 10 it averages the last 10). Defaults to sample_length from constants.
+            finish (function, optional): The function to run once the stream closes. Defaults to print.
         """
         currentFrame = 0
+        frames = []
 
         last_time = time.time()
         times = []
+
+        if output == None:
+            output = self._default_output_function
 
         while True:
             ret, frame = self.read()
@@ -61,13 +66,14 @@ class Camera:
                 continue
 
             frame = cv2.flip(frame, 1)
-            frame = preprocess(frame)
-
-            if output == None:
-                cv2.imshow(self.name, frame)
-                k = cv2.waitKey(1) & 0xFF
-                if k == ord("q") or k == 27:
-                    break
+            frames.insert(0, frame)
+            if len(frames) <= frames_stored:
+                continue
+            frames.pop()
+            output_frame = preprocess(frames)
+               
+            if output(output_frame) == False:
+                break
 
             if self.should_log:
                 currentFrame += 1
@@ -82,3 +88,11 @@ class Camera:
         finish()
         self.cap.release()
         cv2.destroyAllWindows()
+
+    def _default_output_function(self, frames):
+        print(len(frames))
+        frame = frames[0]
+        cv2.imshow(self.name, frame)
+        k = cv2.waitKey(1) & 0xFF
+        if k == ord("q") or k == 27:
+            return False
