@@ -9,18 +9,20 @@ from args import make_parser
 class Camera:
     """Camera class for streaming and taking pictures either from a video or webcam"""
 
-    def __init__(self, src=0, name="Frame", should_log=True):
+    def __init__(self, src=0, name="Frame", should_log=True, frame_lock=None):
         """Creates a Camera object with the parameters as settings
 
         Args:
             src (int or str, optional): The source for the camera: can be a video file or a camera id. Defaults to 0.
             name (str, optional): The name of the camera. Defaults to 'Frame'.
             should_log (bool, optional): Whether or not to log some basic information. Defaults to True.
+            frame_lock (threading.Lock, optional): The lock object if you would like to access the cur_frame in another thread. Defaults to None.
         """
         self.name = name
         self.src = src
         self.should_log = should_log
         self.cur_frame = None
+        self.lock = frame_lock
 
         self.cap = src
         if not isinstance(self.cap, cv2.VideoCapture):
@@ -34,7 +36,11 @@ class Camera:
         """
         ret, frame = self.cap.read()
         if ret:
-            self.cur_frame = frame
+            if self.lock:
+                with self.lock:
+                    self.cur_frame = frame
+            else:
+                self.cur_frame = frame
         return ret, frame
 
     def stream(
