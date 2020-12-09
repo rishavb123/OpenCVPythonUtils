@@ -8,6 +8,17 @@ def make_parser():
     Returns:
         argparse.ArgumentParser: The parser with the correct arguments
     """
+
+    def str2bool(v):
+        if isinstance(v, bool):
+            return v
+        if v.lower() in ("yes", "true", "t", "y", "1"):
+            return True
+        elif v.lower() in ("no", "false", "f", "n", "0"):
+            return False
+        else:
+            raise argparse.ArgumentTypeError("Boolean value expected.")
+
     parser = argparse.ArgumentParser(
         description="Process the cmd arguments to the script"
     )
@@ -18,5 +29,12 @@ def make_parser():
         type=str,
         default=None,
         help="The video to use as the source for the capture",
+    )
+    parser.add_argument(
+        "-l",
+        "--log",
+        type=str2bool,
+        default=True,
+        help="Whether or not to log information",
     )
     return parser

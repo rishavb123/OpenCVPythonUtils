@@ -6,4 +6,4 @@ parser = make_parser()
 args = parser.parse_args()
 
 camera = Camera(src=args.video if args.video else args.cam)
-camera.stream()
+camera.stream(should_log=args.log)
