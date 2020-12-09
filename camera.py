@@ -4,22 +4,18 @@ import time
 
 from constants import sample_length
 
+
 class Camera:
     """Camera class for streaming and taking pictures either from a video or webcam"""
 
-    def __init__(
-        self, 
-        src=0,
-        name='Frame', 
-        should_log=True
-    ):
+    def __init__(self, src=0, name="Frame", should_log=True):
         """Creates a Camera object with the parameters as settings
 
         Args:
             src (int or str, optional): The source for the camera: can be a video file or a camera id. Defaults to 0.
             name (str, optional): The name of the camera. Defaults to 'Frame'.
             should_log (bool, optional): Whether or not to log some basic information. Defaults to True.
-        """    
+        """
         self.name = name
         self.src = src
         self.should_log = should_log
@@ -40,9 +36,9 @@ class Camera:
         self,
         preprocess=lambda frame: frame,
         output=None,
-        log=lambda fps=0, ret=False: print(f"\rFPS: {fps}", end=''),
+        log=lambda fps=0, ret=False: print(f"\rFPS: {fps}", end=""),
         fps_sample_length=sample_length,
-        finish=print
+        finish=print,
     ):
         """Streams the camera output into a function or displays it
 
@@ -53,7 +49,7 @@ class Camera:
             ret ([type], optional): [description]. Defaults to False:print(f"\rFPS: {fps}", end='').
             fps_sample_length ([type], optional): [description]. Defaults to sample_length.
             finish ([type], optional): [description]. Defaults to print.
-        """    
+        """
         currentFrame = 0
 
         last_time = time.time()
@@ -61,7 +57,8 @@ class Camera:
 
         while True:
             ret, frame = self.read()
-            if not ret: continue
+            if not ret:
+                continue
 
             frame = cv2.flip(frame, 1)
             frame = preprocess(frame)
