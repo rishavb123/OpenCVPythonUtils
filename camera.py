@@ -35,9 +35,6 @@ class Camera:
         last_time = time.time()
         times = []
 
-        if not self.should_log:
-            log = lambda s: None
-
         while True:
             ret, frame = self.read()
             if not ret: continue
@@ -51,14 +48,15 @@ class Camera:
                 if k == ord("q") or k == 27:
                     break
 
-            currentFrame += 1
-            cur_time = time.time()
-            dt = cur_time - last_time
-            times.append(dt)
-            if len(times) > fps_sample_length:
-                times.pop(0)
-            log(fps=len(times) / sum(times), ret=ret)
-            last_time = cur_time
+            if self.should_log:
+                currentFrame += 1
+                cur_time = time.time()
+                dt = cur_time - last_time
+                times.append(dt)
+                if len(times) > fps_sample_length:
+                    times.pop(0)
+                log(fps=len(times) / sum(times), ret=ret)
+                last_time = cur_time
 
         finish()
         self.cap.release()
