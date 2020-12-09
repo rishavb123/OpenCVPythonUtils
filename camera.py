@@ -28,6 +28,9 @@ class Camera:
         if not isinstance(self.cap, cv2.VideoCapture):
             self.cap = cv2.VideoCapture(self.cap)
 
+    def set_lock(self, lock):
+        self.lock = lock
+
     def read(self):
         """Reads an image from the internal capture object
 
