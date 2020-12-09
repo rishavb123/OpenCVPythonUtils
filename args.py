@@ -1,3 +1,4 @@
+"""File to handle cmd arguments for the camera module"""
 import argparse
 
 def make_parser():

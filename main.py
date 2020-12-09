@@ -1,3 +1,4 @@
+"""Main script"""
 from args import make_parser
 from camera import Camera
 
