@@ -5,6 +5,7 @@ import time
 from constants import sample_length
 
 class Camera:
+    """Camera class for streaming and taking pictures either from a video or webcam"""
 
     def __init__(
         self, 
@@ -15,9 +16,9 @@ class Camera:
         """Creates a Camera object with the parameters as settings
 
         Args:
-            src (int, optional): [description]. Defaults to 0.
-            name (str, optional): [description]. Defaults to 'Frame'.
-            should_log (bool, optional): [description]. Defaults to True.
+            src (int or str, optional): The source for the camera: can be a video file or a camera id. Defaults to 0.
+            name (str, optional): The name of the camera. Defaults to 'Frame'.
+            should_log (bool, optional): Whether or not to log some basic information. Defaults to True.
         """    
         self.name = name
         self.src = src
