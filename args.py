@@ -2,7 +2,7 @@
 import argparse
 
 
-def make_parser():
+def make_parser(**kwargs):
     """Makes a argument parser for some camera arguments
 
     Returns:
@@ -36,5 +36,12 @@ def make_parser():
         type=str2bool,
         default=True,
         help="Whether or not to log information",
+    )
+    parser.add_argument(
+        "-tl",
+        "--thread-lock",
+        type=str2bool,
+        default=False,
+        help="Whether or not to use a thread lock while updating the frame",
     )
     return parser
