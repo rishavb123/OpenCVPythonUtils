@@ -1,6 +1,7 @@
 """A file for the camera class"""
 import cv2
 import time
+import threading
 
 from constants import sample_length
 from args import make_parser
@@ -29,6 +30,11 @@ class Camera:
             self.cap = cv2.VideoCapture(self.cap)
 
     def set_lock(self, lock):
+        """Sets the internal threading lock for self.cur_frame
+
+        Args:
+            lock (threading.Lock): the lock to set it to
+        """        
         self.lock = lock
 
     def read(self):
@@ -38,12 +44,11 @@ class Camera:
             tuple: tuple containing a boolean of whether the image is valid and the actual image
         """
         ret, frame = self.cap.read()
-        if ret:
-            if self.lock:
-                with self.lock:
-                    self.cur_frame = frame
-            else:
+        if self.lock:
+            with self.lock:
                 self.cur_frame = frame
+        else:
+            self.cur_frame = frame
         return ret, frame
 
     def stream(
@@ -75,7 +80,7 @@ class Camera:
             output = self._default_output_function
 
         while True:
-            ret, frame = self.read()
+            ret, frame = self.cap.read()
             if not ret:
                 continue
 
@@ -85,6 +90,12 @@ class Camera:
                 continue
             frames.pop()
             output_frame = preprocess(frames)
+            
+            if self.lock:
+                with self.lock:
+                    self.cur_frame = output_frame
+            else:
+                self.cur_frame = output_frame
 
             if output(output_frame) == False:
                 break
@@ -111,9 +122,19 @@ class Camera:
         return True
 
 
-def make_camera_with_args():
+def make_camera_with_args(**kwargs):
+    """Creates a camera using the arguments passed in through command line and kwargs in this function
+
+    Returns:
+        tuple: the camera object created and the args parsed
+    """
     parser = make_parser()
     args = parser.parse_args()
 
-    camera = Camera(src=args.video if args.video else args.cam, should_log=args.log)
+    video = kwargs.get("video", args.video)
+    cam = kwargs.get("cam", args.cam)
+    should_log = kwargs.get("log", args.should_log)
+    lock = kwargs.get("theading-lock", args.lock)
+
+    camera = Camera(src=video if video else cam, should_log=should_log, lock=threading.Lock() if lock else None)
     return camera, args
