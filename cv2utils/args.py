@@ -19,6 +19,15 @@ def make_parser(**kwargs):
         else:
             raise argparse.ArgumentTypeError("Boolean value expected.")
 
+    def twoints(v):
+        if (
+            "," not in v
+            or not v.split(",")[0].isdigit()
+            or not v.split(",")[1].isdigit()
+        ):
+            raise argparse.ArgumentTypeError("Resolution value must have format w,h")
+        return (int(v.split(",")[0]), int(v.split(",")[1]))
+
     parser = argparse.ArgumentParser(
         description="Process the cmd arguments to the script"
     )
@@ -43,5 +52,19 @@ def make_parser(**kwargs):
         type=str2bool,
         default=False,
         help="Whether or not to use a thread lock while updating the frame",
+    )
+    parser.add_argument(
+        "-res",
+        "--resolution",
+        type=twoints,
+        default=(9999, 9999),
+        help="The resolution the camera should sample with. Ex: 1280,720",
+    )
+    parser.add_argument(
+        "-fps",
+        "--frames-per-second",
+        type=int,
+        default=999,
+        help="The frames per second to sample with",
     )
     return parser

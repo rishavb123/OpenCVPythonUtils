@@ -12,7 +12,15 @@ from .args import make_parser
 class Camera:
     """Camera class for streaming and taking pictures either from a video or webcam"""
 
-    def __init__(self, src=0, name="Frame", should_log=True, frame_lock=None):
+    def __init__(
+        self,
+        src=0,
+        name="Frame",
+        should_log=True,
+        frame_lock=None,
+        res=(9999, 9999),
+        fps=999,
+    ):
         """Creates a Camera object with the parameters as settings
 
         Args:
@@ -20,6 +28,8 @@ class Camera:
             name (str, optional): The name of the camera. Defaults to 'Frame'.
             should_log (bool, optional): Whether or not to log some basic information. Defaults to True.
             frame_lock (threading.Lock, optional): The lock object if you would like to access the cur_frame in another thread. Defaults to None.
+            res (tuple, optional): The resolution the camera with sample with. Defaults to the max value of the camera you are using.
+            fps (int, optional): The frames per second for the camera to sample with. Defaults to the max value of the camera you are using.
         """
         self.name = name
         self.src = src
@@ -30,9 +40,9 @@ class Camera:
         self.cap = src
         if not isinstance(self.cap, cv2.VideoCapture):
             self.cap = cv2.VideoCapture(self.cap)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 9999)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 9999)
-        self.cap.set(cv2.CAP_PROP_FPS, 999)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
+        self.cap.set(cv2.CAP_PROP_FPS, fps)
 
     def set_lock(self, lock):
         """Sets the internal threading lock for self.cur_frame
@@ -142,7 +152,11 @@ class Camera:
         last_time = time.time()
         times = []
 
-        with pyvirtualcam.Camera(width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), fps=int(self.cap.get(cv2.CAP_PROP_FPS))) as cam:
+        with pyvirtualcam.Camera(
+            width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+            fps=int(self.cap.get(cv2.CAP_PROP_FPS)),
+        ) as cam:
             print("Press Control C to stop")
             while True:
                 try:
@@ -173,7 +187,7 @@ class Camera:
                             times.pop(0)
                         log(fps=len(times) / sum(times), ret=ret)
                         last_time = cur_time
-                        
+
                     cam.send(cv2.cvtColor(output_frame, cv2.COLOR_BGR2RGBA))
                     cam.sleep_until_next_frame()
 
@@ -204,10 +218,14 @@ def make_camera_with_args(**kwargs):
     cam = kwargs.get("cam", args.cam)
     should_log = kwargs.get("log", args.log)
     lock = kwargs.get("theading-lock", args.thread_lock)
+    res = kwargs.get("res", args.res)
+    fps = kwargs.get("fps", args.fps)
 
     camera = Camera(
         src=video if video else cam,
         should_log=should_log,
         frame_lock=threading.Lock() if lock else None,
+        res=res,
+        fps=fps,
     )
     return camera, args
