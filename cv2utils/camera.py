@@ -133,7 +133,7 @@ class Camera:
 
     def make_virtual_webcam(
         self,
-        preprocess=lambda frames: frames[0],
+        preprocess=lambda frames, raw: frames[0],
         frames_stored=1,
         prepare=lambda frame: cv2.flip(frame, 1),
         log=lambda fps=0, ret=True: print(f"\rFPS: {fps}", end=""),
@@ -164,17 +164,17 @@ class Camera:
             print("Press Control C to stop")
             while True:
                 try:
-                    ret, frame = self.cap.read()
+                    ret, raw = self.cap.read()
                     if not ret:
                         continue
 
-                    frame = prepare(frame)
+                    frame = prepare(raw)
 
                     frames.insert(0, frame)
                     if len(frames) <= frames_stored:
                         continue
                     frames.pop()
-                    output_frame = preprocess(frames)
+                    output_frame = preprocess(frames=frames, raw=raw)
 
                     if self.lock:
                         with self.lock:
