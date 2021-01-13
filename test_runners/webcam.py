@@ -1,5 +1,3 @@
-"""Main script"""
-
 import sys
 import os
 
