@@ -218,8 +218,8 @@ def make_camera_with_args(**kwargs):
     cam = kwargs.get("cam", args.cam)
     should_log = kwargs.get("log", args.log)
     lock = kwargs.get("theading-lock", args.thread_lock)
-    res = kwargs.get("res", args.res)
-    fps = kwargs.get("fps", args.fps)
+    res = kwargs.get("res", args.resolution)
+    fps = kwargs.get("fps", args.frames_per_second)
 
     camera = Camera(
         src=video if video else cam,
