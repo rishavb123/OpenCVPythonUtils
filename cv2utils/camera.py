@@ -5,8 +5,8 @@ import threading
 import pyvirtualcam
 import numpy as np
 
-from constants import sample_length
-from args import make_parser
+from .constants import sample_length
+from .args import make_parser
 
 
 class Camera:
