@@ -209,13 +209,13 @@ class Camera:
         return True
 
 
-def make_camera_with_args(**kwargs):
+def make_camera_with_args(parser=None, **kwargs):
     """Creates a camera using the arguments passed in through command line and kwargs in this function
 
     Returns:
         tuple: the camera object created and the args parsed
     """
-    parser = make_parser()
+    parser = parser or make_parser()
     args = parser.parse_args()
 
     video = kwargs.get("video", args.video)
