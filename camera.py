@@ -2,6 +2,7 @@
 import cv2
 import time
 import threading
+import pyvirtualcam
 
 from constants import sample_length
 from args import make_parser
@@ -113,6 +114,68 @@ class Camera:
         finish()
         self.cap.release()
         cv2.destroyAllWindows()
+
+    def make_virtual_webcam(
+        self,
+        preprocess=lambda frames: frames[0],
+        frames_stored=1,
+        log=lambda fps=0, ret=True: print(f"\rFPS: {fps}", end=""),
+        fps_sample_length=sample_length,
+        finish=print,
+    ):
+        """Streams the preprocessed camera output into a virtual webcam device
+
+        Args:
+            preprocess (function, optional): Function to pass the frames through before streaming it. Defaults to lambda frames:frame[0].
+            frames_stored (int, optional): The number of frames to pass into the preprocess function. Defaults to 1
+            log (function, optional): The log function to pass the fps and ret values into. Defaults to lambda fps=0:print(f"\rFPS: {fps}", end='').
+            fps_sample_length (int, optional): The sample length for the fps (if sample length is 10 it averages the last 10). Defaults to sample_length from constants.
+            finish (function, optional): The function to run once the stream closes. Defaults to print.
+        """
+        currentFrame = 0
+        frames = []
+
+        last_time = time.time()
+        times = []
+
+        with pyvirtualcam.Camera(width=1280, height=720, fps=30) as cam:
+            print("Press Control C to stop")
+            while True:
+                try:
+                    ret, frame = self.cap.read()
+                    if not ret:
+                        continue
+
+                    frame = cv2.flip(frame, 1)
+                    frames.insert(0, frame)
+                    if len(frames) <= frames_stored:
+                        continue
+                    frames.pop()
+                    output_frame = preprocess(frames)
+                    cam.send(output_frame)
+                    
+                    if self.lock:
+                        with self.lock:
+                            self.cur_frame = output_frame
+                    else:
+                        self.cur_frame = output_frame
+
+                    if self.should_log:
+                        currentFrame += 1
+                        cur_time = time.time()
+                        dt = cur_time - last_time
+                        times.append(dt)
+                        if len(times) > fps_sample_length:
+                            times.pop(0)
+                        log(fps=len(times) / sum(times), ret=ret)
+                        last_time = cur_time
+
+                    cam.sleep_until_next_frame()
+                except:
+                    finish()
+                    self.cap.release()
+                    cv2.destroyAllWindows()
+    
 
     def _default_output_function(self, frame):
         cv2.imshow(self.name, frame)
