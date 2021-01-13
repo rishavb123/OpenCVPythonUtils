@@ -135,6 +135,7 @@ class Camera:
         self,
         preprocess=lambda frames: frames[0],
         frames_stored=1,
+        prepare=lambda frame: cv2.flip(frame, 1),
         log=lambda fps=0, ret=True: print(f"\rFPS: {fps}", end=""),
         fps_sample_length=sample_length,
         finish=print,
@@ -144,6 +145,7 @@ class Camera:
         Args:
             preprocess (function, optional): Function to pass the frames through before streaming it. Defaults to lambda frames:frame[0].
             frames_stored (int, optional): The number of frames to pass into the preprocess function. Defaults to 1
+            prepare (function, optional): The function to run on a frame before adding it to the buffer. Defaults to flipping it accross the y-axis.
             log (function, optional): The log function to pass the fps and ret values into. Defaults to lambda fps=0:print(f"\rFPS: {fps}", end='').
             fps_sample_length (int, optional): The sample length for the fps (if sample length is 10 it averages the last 10). Defaults to sample_length from constants.
             finish (function, optional): The function to run once the stream closes. Defaults to print.
@@ -166,7 +168,7 @@ class Camera:
                     if not ret:
                         continue
 
-                    frame = cv2.flip(frame, 1)
+                    frame = prepare(frame)
 
                     frames.insert(0, frame)
                     if len(frames) <= frames_stored:
