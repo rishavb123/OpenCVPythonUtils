@@ -68,7 +68,7 @@ class Camera:
 
     def stream(
         self,
-        preprocess=lambda frames: frames[0],
+        preprocess=lambda frames, raw: frames[0],
         output=None,
         frames_stored=1,
         prepare=lambda frame: cv2.flip(frame, 1),
@@ -97,16 +97,16 @@ class Camera:
             output = self._default_output_function
 
         while True:
-            ret, frame = self.cap.read()
+            ret, raw = self.cap.read()
             if not ret:
                 continue
 
-            frame = prepare(frame)
+            frame = prepare(raw)
             frames.insert(0, frame)
             if len(frames) <= frames_stored:
                 continue
             frames.pop()
-            output_frame = preprocess(frames)
+            output_frame = preprocess(frames=frames, raw=raw)
 
             if self.lock:
                 with self.lock:
