@@ -3,6 +3,7 @@ import cv2
 import time
 import threading
 import pyvirtualcam
+import numpy as np
 
 from constants import sample_length
 from args import make_parser
@@ -29,13 +30,16 @@ class Camera:
         self.cap = src
         if not isinstance(self.cap, cv2.VideoCapture):
             self.cap = cv2.VideoCapture(self.cap)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 9999)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 9999)
+        self.cap.set(cv2.CAP_PROP_FPS, 999)
 
     def set_lock(self, lock):
         """Sets the internal threading lock for self.cur_frame
 
         Args:
             lock (threading.Lock): the lock to set it to
-        """        
+        """
         self.lock = lock
 
     def read(self):
@@ -91,7 +95,7 @@ class Camera:
                 continue
             frames.pop()
             output_frame = preprocess(frames)
-            
+
             if self.lock:
                 with self.lock:
                     self.cur_frame = output_frame
@@ -138,7 +142,7 @@ class Camera:
         last_time = time.time()
         times = []
 
-        with pyvirtualcam.Camera(width=1280, height=720, fps=30) as cam:
+        with pyvirtualcam.Camera(width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), fps=int(self.cap.get(cv2.CAP_PROP_FPS))) as cam:
             print("Press Control C to stop")
             while True:
                 try:
@@ -147,13 +151,13 @@ class Camera:
                         continue
 
                     frame = cv2.flip(frame, 1)
+
                     frames.insert(0, frame)
                     if len(frames) <= frames_stored:
                         continue
                     frames.pop()
                     output_frame = preprocess(frames)
-                    cam.send(output_frame)
-                    
+
                     if self.lock:
                         with self.lock:
                             self.cur_frame = output_frame
@@ -169,13 +173,15 @@ class Camera:
                             times.pop(0)
                         log(fps=len(times) / sum(times), ret=ret)
                         last_time = cur_time
-
+                        
+                    cam.send(cv2.cvtColor(output_frame, cv2.COLOR_BGR2RGBA))
                     cam.sleep_until_next_frame()
-                except:
+
+                except KeyboardInterrupt as e:
                     finish()
                     self.cap.release()
                     cv2.destroyAllWindows()
-    
+                    break
 
     def _default_output_function(self, frame):
         cv2.imshow(self.name, frame)
@@ -196,8 +202,12 @@ def make_camera_with_args(**kwargs):
 
     video = kwargs.get("video", args.video)
     cam = kwargs.get("cam", args.cam)
-    should_log = kwargs.get("log", args.should_log)
-    lock = kwargs.get("theading-lock", args.lock)
+    should_log = kwargs.get("log", args.log)
+    lock = kwargs.get("theading-lock", args.thread_lock)
 
-    camera = Camera(src=video if video else cam, should_log=should_log, lock=threading.Lock() if lock else None)
+    camera = Camera(
+        src=video if video else cam,
+        should_log=should_log,
+        frame_lock=threading.Lock() if lock else None,
+    )
     return camera, args
