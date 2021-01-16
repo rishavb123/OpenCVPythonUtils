@@ -44,6 +44,22 @@ class Camera:
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
         self.cap.set(cv2.CAP_PROP_FPS, fps)
 
+    def get_res(self):
+        """Gets the resolution of the internal opencv capture object
+
+        Returns:
+            tuple: the resolution in the format (w, h)
+        """        
+        return int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    def get_fps(self):
+        """Gets the fps of the internal opencv capture object
+
+        Returns:
+            int: the fps
+        """        
+        return int(self.cap.get(cv2.CAP_PROP_FPS))
+
     def set_lock(self, lock):
         """Sets the internal threading lock for self.cur_frame
 
