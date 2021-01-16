@@ -191,9 +191,11 @@ class Camera:
         last_time = time.time()
         times = []
 
+        webcam_res = (webcam_res[0] or int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), webcam_res[1] or int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+
         with pyvirtualcam.Camera(
-            width=webcam_res[0] or int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-            height=webcam_res[1] or int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+            width=webcam_res[0],
+            height=webcam_res[1],
             fps=int(self.cap.get(cv2.CAP_PROP_FPS)),
         ) as cam:
             print("Press Control C to stop")
@@ -227,7 +229,7 @@ class Camera:
                         log(fps=len(times) / sum(times), ret=ret)
                         last_time = cur_time
 
-                    cam.send(cv2.cvtColor(output_frame, cv2.COLOR_BGR2RGBA))
+                    cam.send(cv2.resize(cv2.cvtColor(output_frame, cv2.COLOR_BGR2RGBA), webcam_res))
                     cam.sleep_until_next_frame()
 
                 except KeyboardInterrupt as e:
