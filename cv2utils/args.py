@@ -43,7 +43,7 @@ def make_parser(**kwargs):
         "-l",
         "--log",
         type=str2bool,
-        default=True,
+        default=False,
         help="Whether or not to log information",
     )
     parser.add_argument(
