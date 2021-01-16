@@ -53,10 +53,20 @@ class Camera:
         self.lock = lock
 
     def set_res(self, res):
+        """Sets the resolution of the internal opencv capture object
+        
+        Args:
+            res (tuple): the resolution to set it to; (w,h)  is the format       
+        """
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
 
     def set_fps(self, fps):
+        """Sets the fps of the internal opencv capture object
+
+        Args:
+            fps (int): the fps to set it to
+        """        
         self.cap.set(cv2.CAP_PROP_FPS, fps)
 
     def read(self):
