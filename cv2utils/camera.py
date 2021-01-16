@@ -171,6 +171,7 @@ class Camera:
         prepare=lambda frame: cv2.flip(frame, 1),
         log=lambda fps=0, ret=True: print(f"\rFPS: {fps}", end=""),
         fps_sample_length=sample_length,
+        webcam_res=(None, None),
         finish=print,
     ):
         """Streams the preprocessed camera output into a virtual webcam device
@@ -181,6 +182,7 @@ class Camera:
             prepare (function, optional): The function to run on a frame before adding it to the buffer. Defaults to flipping it accross the y-axis.
             log (function, optional): The log function to pass the fps and ret values into. Defaults to lambda fps=0:print(f"\rFPS: {fps}", end='').
             fps_sample_length (int, optional): The sample length for the fps (if sample length is 10 it averages the last 10). Defaults to sample_length from constants.
+            webcam_res (tuple, optional): The resolution of the webcam. Defaults to the resolution of the internal capture object.
             finish (function, optional): The function to run once the stream closes. Defaults to print.
         """
         currentFrame = 0
@@ -190,8 +192,8 @@ class Camera:
         times = []
 
         with pyvirtualcam.Camera(
-            width=int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-            height=int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+            width=webcam_res[0] or int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            height=webcam_res[1] or int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
             fps=int(self.cap.get(cv2.CAP_PROP_FPS)),
         ) as cam:
             print("Press Control C to stop")
