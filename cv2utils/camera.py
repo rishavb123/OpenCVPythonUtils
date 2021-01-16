@@ -52,6 +52,13 @@ class Camera:
         """
         self.lock = lock
 
+    def set_res(self, res):
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
+
+    def set_fps(self, fps):
+        self.cap.set(cv2.CAP_PROP_FPS, fps)
+
     def read(self):
         """Reads an image from the internal capture object
 
