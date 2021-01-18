@@ -341,6 +341,11 @@ class Camera:
             """
             self.__internal[code]["set"](val)
 
+        def release(self):
+            """Dummy method to mock cv2 capture object
+            """            
+            pass
+
 
 def make_camera_with_args(parser=None, **kwargs):
     """Creates a camera using the arguments passed in through command line and kwargs in this function
