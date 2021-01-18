@@ -38,7 +38,7 @@ class Camera:
         self.lock = frame_lock
 
         self.cap = src
-        if not isinstance(self.cap, cv2.VideoCapture):
+        if not isinstance(self.cap, cv2.VideoCapture) and not isinstance(self.cap, Camera.Monitor):
             self.cap = cv2.VideoCapture(self.cap)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
@@ -49,15 +49,17 @@ class Camera:
 
         Returns:
             tuple: the resolution in the format (w, h)
-        """        
-        return int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        """
+        return int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(
+            self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        )
 
     def get_fps(self):
         """Gets the fps of the internal opencv capture object
 
         Returns:
             int: the fps
-        """        
+        """
         return int(self.cap.get(cv2.CAP_PROP_FPS))
 
     def set_lock(self, lock):
@@ -70,9 +72,9 @@ class Camera:
 
     def set_res(self, res):
         """Sets the resolution of the internal opencv capture object
-        
+
         Args:
-            res (tuple): the resolution to set it to; (w,h)  is the format       
+            res (tuple): the resolution to set it to; (w,h)  is the format
         """
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
@@ -82,7 +84,7 @@ class Camera:
 
         Args:
             fps (int): the fps to set it to
-        """        
+        """
         self.cap.set(cv2.CAP_PROP_FPS, fps)
 
     def read(self):
@@ -191,7 +193,10 @@ class Camera:
         last_time = time.time()
         times = []
 
-        webcam_res = (webcam_res[0] or int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), webcam_res[1] or int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        webcam_res = (
+            webcam_res[0] or int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            webcam_res[1] or int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+        )
 
         with pyvirtualcam.Camera(
             width=webcam_res[0],
@@ -229,7 +234,11 @@ class Camera:
                         log(fps=len(times) / sum(times), ret=ret)
                         last_time = cur_time
 
-                    cam.send(cv2.resize(cv2.cvtColor(output_frame, cv2.COLOR_BGR2RGBA), webcam_res))
+                    cam.send(
+                        cv2.resize(
+                            cv2.cvtColor(output_frame, cv2.COLOR_BGR2RGBA), webcam_res
+                        )
+                    )
                     cam.sleep_until_next_frame()
 
                 except KeyboardInterrupt as e:
@@ -244,6 +253,93 @@ class Camera:
         if k == ord("q") or k == 27:
             return False
         return True
+
+    class Monitor:
+        """A class to encapsulate the parameters to start reading pixels from the screen"""
+
+        def __init__(
+            self, sct, mon=0, top=0, left=0, width=1, height=1, updating=False
+        ):
+            """Contructs a Camera.Monitor object using the parameters passed in
+
+            Args:
+                sct (mss.mss): A reference to the mss.mss() object created outside the class
+                mon (int, optional): Which monitor number to use. Defaults to 0.
+                top (int, optional): The top position to capture. Defaults to 0.
+                left (int, optional): The left position to capture. Defaults to 0.
+                width (int, optional): The width to capture. Defaults to 1.
+                height (int, optional): The height to capture. Defaults to 1.
+                updating (bool, optional): Whether or not these values will update over time during the program. Defaults to False.
+            """
+            self.sct = sct
+            self.mon = mon
+            self.top = top
+            self.left = left
+            self.width = width
+            self.height = height
+            self.updating = updating
+            self.__data = None
+            m = self.sct.monitors[self.mon]
+
+            def set_width(x):
+                self.width = x / m["width"]
+
+            def set_height(y):
+                self.height = y / m["height"]
+
+            self.__internal = {
+                cv2.CAP_PROP_FRAME_WIDTH: {
+                    "get": lambda: int(m["width"] * self.width),
+                    "set": set_width,
+                },
+                cv2.CAP_PROP_FRAME_HEIGHT: {
+                    "get": lambda: int(m["height"] * self.height),
+                    "set": set_height,
+                },
+                cv2.CAP_PROP_FPS: {"get": lambda: 30, "set": lambda x: x},
+            }
+
+        def __json(self):
+            if self.updating or self.__data is None:
+                mon = self.sct.monitors[self.mon]
+                self.__data = {
+                    "top": int(mon["top"] + mon["height"] * self.top),
+                    "left": int(mon["left"] + mon["width"] * self.left),
+                    "width": int(mon["width"] * self.width),
+                    "height": int(mon["height"] * self.height),
+                }
+            return self.__data
+
+        def read(self):
+            """Reads an image from the monitor defined in the contructor
+
+            Returns:
+                tuple: tuple containing the boolean value for whether the image capture worked and the captured iamge
+            """
+            try:
+                return True, np.array(self.sct.grab(self.__json()))
+            except:
+                return False, None
+
+        def get(self, code):
+            """Gets a cv2 property of this capture object
+
+            Args:
+                code (int): the code from cv2
+
+            Returns:
+                object: The value at the specified code
+            """
+            return self.__internal[code]["get"]()
+
+        def set(self, code, val):
+            """Sets a cv2 property of this capture object
+
+            Args:
+                code (int): the code from cv2
+                val (object): the value to set it to
+            """
+            self.__internal[code]["set"](val)
 
 
 def make_camera_with_args(parser=None, **kwargs):
