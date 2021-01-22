@@ -40,9 +40,10 @@ class Camera:
         self.cap = src
         if not isinstance(self.cap, cv2.VideoCapture) and not isinstance(self.cap, Camera.Monitor):
             self.cap = cv2.VideoCapture(self.cap)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
-        self.cap.set(cv2.CAP_PROP_FPS, fps)
+        if not isinstance(self.cap, Camera.Monitor):
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, res[0])
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, res[1])
+            self.cap.set(cv2.CAP_PROP_FPS, fps)
 
     def get_res(self):
         """Gets the resolution of the internal opencv capture object
