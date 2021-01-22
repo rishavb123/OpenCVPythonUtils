@@ -131,6 +131,11 @@ class Camera:
         if output == None:
             output = self._default_output_function
 
+        if prepare is None:
+            prepare = lambda frame: frame
+        if log is None:
+            log = lambda fps=0, ret=True: None
+
         while True:
             ret, raw = self.cap.read()
             if not ret:
@@ -197,6 +202,11 @@ class Camera:
             webcam_res[0] or int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
             webcam_res[1] or int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
         )
+
+        if prepare is None:
+            prepare = lambda frame: frame
+        if log is None:
+            log = lambda fps=0, ret=True: None
 
         with pyvirtualcam.Camera(
             width=webcam_res[0],

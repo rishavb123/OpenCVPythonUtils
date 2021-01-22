@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="cv2utils-rbhagat",
-    version="1.4.1",
+    version="1.4.2",
     author="Rishav Bhagat",
     author_email="rishav@bhagat.io",
     description="A package that has a bunch of utility functions and classes for opencv",
